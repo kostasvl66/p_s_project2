@@ -6,6 +6,7 @@ int main(int argc, char *argv[]) {
     if (argc != 5) {
         fprintf(stderr, "Program must be called as -> ./main dimension zero_percentage reps threads\n");
         fprintf(stderr, "Can also be called as -> make run D=dimension Z=zero_percentage R=reps T=threads\n");
+        fprintf(stderr, "Or as(using default values) -> make run\n");
         return 1;
     }
     // Receiving program inputs

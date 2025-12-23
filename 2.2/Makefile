@@ -8,14 +8,15 @@ T = 4    #THREAD_NUM
 
 .SILENT:
 
-main:
+main: main.c
 	echo "Compiling main"
 	gcc $(CFLAGS) main.c -o main
 
-run: clean main
+run:
+	gcc $(CFLAGS) main.c -o main
 	echo "Running main"
 	./main $(D) $(Z) $(R) $ $(T)
 
-clean:
+clean: main
 	echo "Cleaning"
 	rm main
