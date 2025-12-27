@@ -1,6 +1,7 @@
 CFLAGS = -g -Wall -lpthread 
+LIBFLAGS = -lpthread -lm
 
-D = 100  #ARRAY_DIMENSION
+D = 10  #ARRAY_DIMENSION
 Z = 60   #ZERO_PERCENTAGE
 R = 5    #REPETITIONS
 T = 4    #THREAD_NUM
@@ -10,10 +11,9 @@ T = 4    #THREAD_NUM
 
 main: main.c
 	echo "Compiling main"
-	gcc $(CFLAGS) main.c -o main
+	gcc $(CFLAGS) main.c -o main $(LIBFLAGS)
 
-run:
-	gcc $(CFLAGS) main.c -o main
+run: main
 	echo "Running main"
 	./main $(D) $(Z) $(R) $ $(T)
 
