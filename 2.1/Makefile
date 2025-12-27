@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -O2 -pthread
+CFLAGS = -Wall -O2 -fopenmp
 ARGS = 3 1
 
 PROGRAM = polynomials
