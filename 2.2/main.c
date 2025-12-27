@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Create vector with random int values
-    int vec[dimension];
+    int *vec = (int *)malloc(dimension * sizeof(int));
 
     for (int k = 0; k < dimension; k++) {
         int val = rand_from_range(100);
