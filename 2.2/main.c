@@ -2,10 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int dimension;
-
 /* Structure used to contain a Compressed Sparse Row representation of a sparse matrix*/
 typedef struct CSR {
+    int **matrix;   // Sparse matrix to be represented using CSR
     int *val_array; // Array of non-zero values in the matrix
     int *col_array; // Array of column indexes of non-zero values in the matrix
     int *start_idx; // Array of indexes to the start of each row(first non-zero value)
@@ -29,16 +28,57 @@ void print_matrix(int **matrix, int row, int col) {
 }
 
 /*Builds the Compressed Sparse Row representation of a sparse matrix*/
-CSR_t build_CSR(int **matrix, int row, int col) {
-    CSR_t csr = {NULL, NULL, NULL};
+CSR_t build_CSR(int **matrix, int row, int col, int non_zero) {
     printf("Building CSR representation.\n");
+    CSR_t csr = {matrix, NULL, NULL, NULL};
+    int *values = (int *)malloc(non_zero * sizeof(int));
+    int *columns = (int *)malloc(non_zero * sizeof(int));
+    int *row_start = (int *)malloc((row + 1) * sizeof(int));
+    row_start[row + 1] = non_zero; // Last element of row_start list must contain the number of non-zero elements in the given matrix
 
+    int list_idx = 0; // Index to use for accessing the above lists
+
+    // Iterating through all elements in the matrix and checking for non-zero values
     for (int i = 0; i < row; i++) {
+        row_start[i] = list_idx; // Storing the index of the column where a row's first non-zero element is
         for (int j = 0; j < col; j++) {
+            int val = matrix[i][j];
+            if (val != 0) {
+                values[list_idx] = val; // Storing non-zero value
+                columns[list_idx] = j;  // Storing non-zero value's column index
+                list_idx++;
+            }
         }
     }
 
+    // Storing created lists in the CSR representation structure
+    csr.col_array = columns;
+    csr.val_array = values;
+    csr.start_idx = row_start;
+
     return csr;
+}
+
+/*Prints a CSR representation to terminal*/
+void print_CSR(CSR_t csr, int rows) {
+    int nz_num = csr.start_idx[rows + 1];
+    printf("List of non-zero values is:");
+    for (int i = 0; i < nz_num; i++) {
+        printf("%d \t", csr.val_array[i]);
+    }
+    printf("\n");
+
+    printf("List of non-zero columns is:");
+    for (int i = 0; i < nz_num; i++) {
+        printf("%d \t", csr.col_array[i]);
+    }
+    printf("\n");
+
+    printf("Starting rows are:");
+    for (int i = 0; i < rows; i++) {
+        printf("%d \t", csr.start_idx[i]);
+    }
+    printf("\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -50,7 +90,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     // Receiving program inputs
-    dimension = atoi(argv[1]);           // Matrix dimension
+    int dimension = atoi(argv[1]);       // Matrix dimension
     int zero_percentage = atoi(argv[2]); // Percentage of matrix elements with a value of 0
     int reps = atoi(argv[3]);            // Numbers of times multiplication is repeated
     int threads = atoi(argv[4]);         // Number of threads used for parallel execution
@@ -121,8 +161,15 @@ int main(int argc, char *argv[]) {
     print_matrix(mat, dimension, dimension);
     // HACK:
 
+    // Calculating number of non-zero values in the matrix
+    int non_zero = total_values - zeroes;
+
     // Create CSR representation of sparse matrix
-    CSR_t rep = build_CSR(mat, dimension, dimension);
+    CSR_t M_rep = build_CSR(mat, dimension, dimension, non_zero);
+
+    // HACK: Printing CSR representation for debugging purposes
+    print_CSR(M_rep, dimension);
+    // HACK:
 
     return 0;
 }
