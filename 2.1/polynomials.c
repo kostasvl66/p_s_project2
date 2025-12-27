@@ -360,7 +360,6 @@ cleanup:
     }
 
     return res;
-
     #endif
 }
 
