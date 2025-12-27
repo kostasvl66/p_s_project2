@@ -6,7 +6,6 @@ int dimension;
 
 /* Structure used to contain a Compressed Sparse Row representation of a sparse matrix*/
 typedef struct CSR {
-    int **matrix;   // Matrix to be represented using CSR
     int *val_array; // Array of non-zero values in the matrix
     int *col_array; // Array of column indexes of non-zero values in the matrix
     int *start_idx; // Array of indexes to the start of each row(first non-zero value)
@@ -19,7 +18,7 @@ int rand_from_range(int range_max) {
 }
 
 /* Prints a given 2D matrix in the terminal */
-void print_matrix(int matrix[][dimension], int row, int col) {
+void print_matrix(int **matrix, int row, int col) {
     for (int i = 0; i < row; i++) {
         printf("%d. \t", i);
         for (int j = 0; j < col; j++) {
@@ -30,9 +29,15 @@ void print_matrix(int matrix[][dimension], int row, int col) {
 }
 
 /*Builds the Compressed Sparse Row representation of a sparse matrix*/
-CSR_t build_CSR(int matrix[][dimension], int row, int col) {
-    CSR_t csr = {NULL, NULL, NULL, NULL};
+CSR_t build_CSR(int **matrix, int row, int col) {
+    CSR_t csr = {NULL, NULL, NULL};
     printf("Building CSR representation.\n");
+
+    for (int i = 0; i < row; i++) {
+        for (int j = 0; j < col; j++) {
+        }
+    }
+
     return csr;
 }
 
@@ -67,7 +72,10 @@ int main(int argc, char *argv[]) {
     // Randomly set zeroes% of all values to 0
 
     // Generate matrix for multiplication with values from 0-100
-    int mat[dimension][dimension];
+    int **mat = (int **)malloc(dimension * sizeof(int *));
+    for (int x = 0; x < dimension; x++) {
+        mat[x] = (int *)malloc(dimension * sizeof(int));
+    }
 
     for (int i = 0; i < dimension; i++) {
         for (int j = 0; j < dimension; j++) {
