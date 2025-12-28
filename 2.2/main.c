@@ -1,84 +1,12 @@
+#include "matrixlib.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-/* Structure used to contain a Compressed Sparse Row representation of a sparse matrix*/
-typedef struct CSR {
-    int **matrix;   // Sparse matrix to be represented using CSR
-    int *val_array; // Array of non-zero values in the matrix
-    int *col_array; // Array of column indexes of non-zero values in the matrix
-    int *start_idx; // Array of indexes to the start of each row(first non-zero value)
-} CSR_t;
 
 /*Returns a random number in the range 0 - <range_max>*/
 int rand_from_range(int range_max) {
     int result = rand() / (RAND_MAX / range_max + 1);
     return result;
-}
-
-/* Prints a given 2D matrix in the terminal */
-void print_matrix(int **matrix, int row, int col) {
-    for (int i = 0; i < row; i++) {
-        printf("%d. \t", i);
-        for (int j = 0; j < col; j++) {
-            printf("%d \t", matrix[i][j]);
-        }
-        printf("\n");
-    }
-}
-
-/*Builds the Compressed Sparse Row representation of a sparse matrix*/
-CSR_t build_CSR(int **matrix, int row, int col, int non_zero) {
-    printf("Building CSR representation.\n");
-    CSR_t csr = {matrix, NULL, NULL, NULL};
-    int *values = (int *)malloc(non_zero * sizeof(int));
-    int *columns = (int *)malloc(non_zero * sizeof(int));
-    int *row_start = (int *)malloc((row + 1) * sizeof(int));
-    row_start[row + 1] = non_zero; // Last element of row_start list must contain the number of non-zero elements in the given matrix
-
-    int list_idx = 0; // Index to use for accessing the above lists
-
-    // Iterating through all elements in the matrix and checking for non-zero values
-    for (int i = 0; i < row; i++) {
-        row_start[i] = list_idx; // Storing the index of the column where a row's first non-zero element is
-        for (int j = 0; j < col; j++) {
-            int val = matrix[i][j];
-            if (val != 0) {
-                values[list_idx] = val; // Storing non-zero value
-                columns[list_idx] = j;  // Storing non-zero value's column index
-                list_idx++;
-            }
-        }
-    }
-
-    // Storing created lists in the CSR representation structure
-    csr.col_array = columns;
-    csr.val_array = values;
-    csr.start_idx = row_start;
-
-    return csr;
-}
-
-/*Prints a CSR representation to terminal*/
-void print_CSR(CSR_t csr, int rows) {
-    int nz_num = csr.start_idx[rows + 1];
-    printf("List of non-zero values is:");
-    for (int i = 0; i < nz_num; i++) {
-        printf("%d \t", csr.val_array[i]);
-    }
-    printf("\n");
-
-    printf("List of non-zero columns is:");
-    for (int i = 0; i < nz_num; i++) {
-        printf("%d \t", csr.col_array[i]);
-    }
-    printf("\n");
-
-    printf("Starting rows are:");
-    for (int i = 0; i < rows; i++) {
-        printf("%d \t", csr.start_idx[i]);
-    }
-    printf("\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -96,20 +24,16 @@ int main(int argc, char *argv[]) {
     int threads = atoi(argv[4]);         // Number of threads used for parallel execution
 
     // HACK:Printing arguments for debugging purposes
-    fprintf(stderr, "Array dimension is: %d ", dimension);
-    fprintf(stderr, "Zero_percentage is: %d ", zero_percentage);
-    fprintf(stderr, "Reps is: %d ", reps);
-    fprintf(stderr, "Threads is: %d\n", threads);
+    printf("Array dimension is: %d ", dimension);
+    printf("Zero_percentage is: %d ", zero_percentage);
+    printf("Reps is: %d ", reps);
+    printf("Threads is: %d\n", threads);
     // HACK:
 
     // Useful values
     int total_values = dimension * dimension;
     int zeroes = ceil(total_values * zero_percentage / 100.0);
     printf("There are %d zeroes out of %d values.\n", zeroes, total_values);
-
-    // Create a matrix with dimensions dimension x dimension
-    // Initialize all values as random integers
-    // Randomly set zeroes% of all values to 0
 
     // Generate matrix for multiplication with values from 0-100
     int **mat = (int **)malloc(dimension * sizeof(int *));
@@ -150,11 +74,16 @@ int main(int argc, char *argv[]) {
 
     // Create vector with random int values
     int *vec = (int *)malloc(dimension * sizeof(int));
+    // HACK: Printing vector for debugging purposes
 
+    printf("Vector is:\t");
     for (int k = 0; k < dimension; k++) {
         int val = rand_from_range(100);
         vec[k] = val;
+        printf("%d\t", val);
+        printf("\t");
     }
+    printf("\n");
 
     // HACK: Printing matrix for debugging purposes
     printf("Printing matrix after zeroing.\n");
