@@ -14,3 +14,8 @@ CSR_t build_CSR(int **matrix, int row, int col, int non_zero);
 
 /*Prints a CSR representation to terminal*/
 void print_CSR(CSR_t csr, int rows);
+
+/*Parallel implementations using OpenMP*/
+
+/*Builds the Compressed Sparse Row representation of a sparse matrix using parallel execution*/
+CSR_t omp_build_CSR(int **matrix, int row, int col, int non_zero);
