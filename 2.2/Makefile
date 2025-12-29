@@ -9,9 +9,11 @@ T = 4    #THREAD_NUM
 
 .SILENT:
 
-main: main.c
+main: main.c matrixlib.c
 	echo "Compiling main"
-	gcc $(CFLAGS) main.c -o main $(LIBFLAGS)
+	gcc $(CFLAGS) -c main.c -o main.o
+	gcc $(CFLAGS) -c matrixlib.c -o matrixlib.o
+	gcc $(CFLAGS) -o main main.o matrixlib.o $(LIBFLAGS)
 
 run: main
 	echo "Running main"
