@@ -1,7 +1,7 @@
 CFLAGS = -g -Wall -lpthread 
 LIBFLAGS = -lpthread -lm
 
-D = 10  #ARRAY_DIMENSION
+D = 1000  #ARRAY_DIMENSION
 Z = 60   #ZERO_PERCENTAGE
 R = 5    #REPETITIONS
 T = 4    #THREAD_NUM
