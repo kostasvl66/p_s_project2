@@ -2,11 +2,17 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 /*Returns a random number in the range 0 - <range_max>*/
 int rand_from_range(int range_max) {
     int result = rand() / (RAND_MAX / range_max + 1);
     return result;
+}
+
+/*Return the amount of time elapsed between two timespec instances*/
+double time_elapsed(struct timespec start, struct timespec end) {
+    return (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
 }
 
 int main(int argc, char *argv[]) {
@@ -22,6 +28,11 @@ int main(int argc, char *argv[]) {
     int zero_percentage = atoi(argv[2]); // Percentage of matrix elements with a value of 0
     int reps = atoi(argv[3]);            // Numbers of times multiplication is repeated
     int threads = atoi(argv[4]);         // Number of threads used for parallel execution
+
+    // Timespec initialization
+    struct timespec serial_CSRrep_start, serial_CSRrep_finish;
+    struct timespec serial_mult_start, serial_mult_finish;
+    struct timespec serial_CSRmult_start, serial_CSRmult_finish;
 
     // HACK:Printing arguments for debugging purposes
     printf("Array dimension is: %d ", dimension);
@@ -52,8 +63,8 @@ int main(int argc, char *argv[]) {
         }
     }
     // HACK: Printing matrix for debugging purposes
-    printf("Printing matrix before zeroing.\n");
-    print_matrix(mat, dimension, dimension);
+    // printf("Printing matrix before zeroing.\n");
+    // print_matrix(mat, dimension, dimension);
     // HACK:
 
     // Setting random matrix values to 0
@@ -76,14 +87,16 @@ int main(int argc, char *argv[]) {
     int *vec = (int *)malloc(dimension * sizeof(int));
     // HACK: Printing vector for debugging purposes
 
-    printf("Vector is:\t");
     for (int k = 0; k < dimension; k++) {
         int val = rand_from_range(100);
         vec[k] = val;
-        printf("%d\t", val);
-        printf("\t");
     }
+
+    // HACK: Printing vector for debugging purposes
+    printf("Vector is:\t");
+    print_array(vec, dimension);
     printf("\n");
+    // HACK:
 
     // HACK: Printing matrix for debugging purposes
     printf("Printing matrix after zeroing.\n");
@@ -94,11 +107,62 @@ int main(int argc, char *argv[]) {
     int non_zero = total_values - zeroes;
 
     // Create CSR representation of sparse matrix
+    timespec_get(&serial_CSRrep_start, TIME_UTC);
     CSR_t M_rep = build_CSR(mat, dimension, dimension, non_zero);
+    timespec_get(&serial_CSRrep_finish, TIME_UTC);
+
+    // Storing elapsed time
+    double serial_CSR_elapsed = time_elapsed(serial_CSRrep_start, serial_CSRrep_finish);
+
+    printf("Time of serial CSR creation: %lf\n", serial_CSR_elapsed);
 
     // HACK: Printing CSR representation for debugging purposes
     print_CSR(M_rep, dimension);
     // HACK:
+
+    timespec_get(&serial_mult_start, TIME_UTC);
+
+    // Receiving product of matrix and vector using serual execution
+    int *res = (int *)malloc(dimension * sizeof(int));
+    for (int repetition = 0; repetition < reps; repetition++) {
+        res = mat_vec_product(mat, vec, dimension, dimension);
+    }
+
+    timespec_get(&serial_mult_finish, TIME_UTC);
+
+    // Storing elapsed time
+    double serial_mult_elapsed = time_elapsed(serial_mult_start, serial_mult_finish);
+
+    printf("Time of serial multiplication: %lf\n", serial_mult_elapsed);
+
+    // HACK: Printing matrix-vector product for debugging purposes
+    printf("Product is:\t");
+    print_array(res, dimension);
+    printf("\n");
+    // HACK:
+
+    timespec_get(&serial_CSRmult_start, TIME_UTC);
+
+    int *CSRres = CSR_mat_vec_product(M_rep, vec, dimension);
+
+    timespec_get(&serial_CSRmult_finish, TIME_UTC);
+
+    printf("CSR product is:\t");
+    print_array(CSRres, dimension);
+    printf("\n");
+
+    // Clearing memory
+    for (int row = 0; row < dimension; row++) {
+        free(mat[row]);
+    }
+    free(mat);
+    mat = NULL;
+    free(vec);
+    vec = NULL;
+    free(res);
+    res = NULL;
+    free(CSRres);
+    CSRres = NULL;
 
     return 0;
 }
