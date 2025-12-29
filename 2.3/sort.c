@@ -159,6 +159,47 @@ int mergesort(int *arr, int lower, int higher)
     return 0;
 }
 
+// parallel algorithm for merge sort; lower and higher are inclusive
+// returns 0 on success, -1 on failure
+int mergesort_threaded_internal(int *arr, int lower, int higher, int thread_count)
+{
+    int success = 1;
+
+    if (lower < higher)
+    {
+        int mid = (lower + higher) / 2;
+        
+        #pragma omp task if(higher - lower > 1000) firstprivate(lower, mid)
+        if (mergesort_threaded_internal(arr, lower, mid, thread_count) == -1)
+            success = 0;
+
+        #pragma omp task if(higher - lower > 1000) firstprivate(mid, higher)
+        if (mergesort_threaded_internal(arr, mid + 1, higher, thread_count) == -1)
+            success = 0;
+
+        #pragma omp taskwait
+        if (success)
+            if (merge(arr, lower, mid, higher) == -1)
+                success = 0;
+    }
+
+    return (success ? 0 : -1);
+}
+
+// parallel algorithm for merge sort; lower and higher are inclusive
+// returns 0 on success, -1 on failure
+int mergesort_threaded(int *arr, int length, int thread_count)
+{
+    int ret_val;
+
+    #pragma omp parallel num_threads(thread_count) \
+        default(none) shared(arr, length, thread_count, ret_val)
+    #pragma omp single
+    ret_val = mergesort_threaded_internal(arr, 0, length - 1, thread_count);
+
+    return ret_val;
+}
+
 int main(int argc, char *argv[])
 {
     if (parse_args(argc, argv) == -1)
@@ -172,7 +213,13 @@ int main(int argc, char *argv[])
     struct timespec start, end;
     timespec_get(&start, TIME_UTC);
 
-    if (mergesort(arr, 0, n - 1) == -1)
+    int err;
+    if (thread_count == 0)
+        err = mergesort(arr, 0, n - 1);
+    else
+        err = mergesort_threaded(arr, n, thread_count);
+
+    if (err == -1)
     {
         free(arr);
         return 1;
@@ -185,8 +232,11 @@ int main(int argc, char *argv[])
     else
         printf("Array is not sorted.\n");
     
-    printf("Serial algorithm: %.6f sec\n", elapsed(start, end));
-    
+    if (thread_count == 0)
+        printf("Serial algorithm: %.6f sec\n", elapsed(start, end));
+    else
+        printf("Parallel algorithm: %.6f sec\n", elapsed(start, end));
+
     free(arr);
     return 0;
 }
