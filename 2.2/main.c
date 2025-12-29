@@ -108,7 +108,7 @@ int main(int argc, char *argv[]) {
 
     // Create CSR representation of sparse matrix
     timespec_get(&serial_CSRrep_start, TIME_UTC);
-    CSR_t M_rep = build_CSR(mat, dimension, dimension, non_zero);
+    CSR_t M_rep = CSR_create(mat, dimension, dimension, non_zero);
     timespec_get(&serial_CSRrep_finish, TIME_UTC);
 
     // Storing elapsed time
@@ -125,7 +125,7 @@ int main(int argc, char *argv[]) {
     // Receiving product of matrix and vector using serual execution
     int *res = (int *)malloc(dimension * sizeof(int));
     for (int repetition = 0; repetition < reps; repetition++) {
-        res = mat_vec_product(mat, vec, dimension, dimension);
+        res = mat_vec(mat, vec, dimension, dimension);
     }
 
     timespec_get(&serial_mult_finish, TIME_UTC);
@@ -143,7 +143,7 @@ int main(int argc, char *argv[]) {
 
     timespec_get(&serial_CSRmult_start, TIME_UTC);
 
-    int *CSRres = CSR_mat_vec_product(M_rep, vec, dimension);
+    int *CSRres = CSR_mat_vec(M_rep, vec, dimension);
 
     timespec_get(&serial_CSRmult_finish, TIME_UTC);
 

@@ -6,14 +6,14 @@ typedef struct CSR {
     int *start_idx; // Array of indexes to the start of each row(first non-zero value)
 } CSR_t;
 
-/* Returns the product of multiplication between a matrix and a vector*/
-int *mat_vec_product(int **matrix, int *vector, int row, int col);
-
 /*Builds the Compressed Sparse Row representation of a sparse matrix*/
-CSR_t build_CSR(int **matrix, int row, int col, int non_zero);
+CSR_t CSR_create(int **matrix, int row, int col, int non_zero);
+
+/* Returns the product of multiplication between a matrix and a vector*/
+int *mat_vec(int **matrix, int *vector, int row, int col);
 
 /* Returns the product of multiplication between a matrix and a vector, using CSR representation*/
-int *CSR_mat_vec_product(CSR_t rep, int *vec, int dimension);
+int *CSR_mat_vec(CSR_t rep, int *vec, int dimension);
 
 /* Prints a given 2D matrix in the terminal */
 void print_matrix(int **matrix, int row, int col);

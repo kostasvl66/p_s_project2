@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 /*Builds the Compressed Sparse Row representation of a sparse matrix*/
-CSR_t build_CSR(int **matrix, int row, int col, int non_zero) {
+CSR_t CSR_create(int **matrix, int row, int col, int non_zero) {
     printf("Building CSR representation.\n");
     CSR_t csr = {matrix, NULL, NULL, NULL};
     int *values = (int *)malloc(non_zero * sizeof(int));
@@ -39,7 +39,7 @@ CSR_t build_CSR(int **matrix, int row, int col, int non_zero) {
 // τυπώνει αντίστοιχα τον συνολικό χρόνο του πολλαπλασιασμού.
 
 /* Returns the product of multiplication between a matrix and a vector*/
-int *mat_vec_product(int **matrix, int *vector, int row, int col) {
+int *mat_vec(int **matrix, int *vector, int row, int col) {
     int *res_vec = (int *)malloc(col * sizeof(int)); // Vector to store product
     for (int i = 0; i < row; i++) {
         res_vec[i] = 0; // Initializing values of result vector as 0
@@ -52,7 +52,7 @@ int *mat_vec_product(int **matrix, int *vector, int row, int col) {
 }
 
 /* Returns the product of multiplication between a matrix and a vector, using CSR representation*/
-int *CSR_mat_vec_product(CSR_t rep, int *vec, int dimension) {
+int *CSR_mat_vec(CSR_t rep, int *vec, int dimension) {
     // Iterating through all non-zero values stored in the CSR representation
     int row_start, row_end;
     int *res_vec = malloc(dimension * sizeof(int));
