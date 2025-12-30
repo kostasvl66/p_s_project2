@@ -161,29 +161,28 @@ int mergesort(int *arr, int lower, int higher)
 
 // parallel algorithm for merge sort; lower and higher are inclusive
 // returns 0 on success, -1 on failure
-int mergesort_threaded_internal(int *arr, int lower, int higher, int thread_count)
+int mergesort_threaded_internal(int *arr, int lower, int higher, int thread_count, int depth)
 {
-    int success = 1;
-
     if (lower < higher)
     {
+        int ret_val1, ret_val2;
         int mid = (lower + higher) / 2;
         
-        #pragma omp task if(higher - lower > 1000) firstprivate(lower, mid)
-        if (mergesort_threaded_internal(arr, lower, mid, thread_count) == -1)
-            success = 0;
+        #pragma omp task if(depth < 4) firstprivate(lower, mid, depth)
+        ret_val1 = mergesort_threaded_internal(arr, lower, mid, thread_count, depth + 1);
 
-        #pragma omp task if(higher - lower > 1000) firstprivate(mid, higher)
-        if (mergesort_threaded_internal(arr, mid + 1, higher, thread_count) == -1)
-            success = 0;
+        #pragma omp task if(depth < 4) firstprivate(mid, higher, depth)
+        ret_val2 = mergesort_threaded_internal(arr, mid + 1, higher, thread_count, depth + 1);
 
         #pragma omp taskwait
-        if (success)
-            if (merge(arr, lower, mid, higher) == -1)
-                success = 0;
-    }
+        if (ret_val1 == -1 || ret_val2 == -1)
+            return -1;
 
-    return (success ? 0 : -1);
+        if (merge(arr, lower, mid, higher) == -1)
+            return -1;
+    }
+   
+    return 0;
 }
 
 // parallel algorithm for merge sort; lower and higher are inclusive
@@ -195,7 +194,7 @@ int mergesort_threaded(int *arr, int length, int thread_count)
     #pragma omp parallel num_threads(thread_count) \
         default(none) shared(arr, length, thread_count, ret_val)
     #pragma omp single
-    ret_val = mergesort_threaded_internal(arr, 0, length - 1, thread_count);
+    ret_val = mergesort_threaded_internal(arr, 0, length - 1, thread_count, 0);
 
     return ret_val;
 }
