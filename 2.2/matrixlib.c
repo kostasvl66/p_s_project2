@@ -24,7 +24,7 @@ CSR_t CSR_create(int **matrix, int row, int col, int non_zero) {
             if (val != 0) {
                 values[list_idx] = val; // Storing non-zero value
                 columns[list_idx] = j;  // Storing non-zero value's column index
-                list_idx++;
+                list_idx++;             // Incrementing index
             }
         }
     }
@@ -36,10 +36,6 @@ CSR_t CSR_create(int **matrix, int row, int col, int non_zero) {
 
     return csr;
 }
-
-// Έπειτα, θα πολλαπλασιάζει παράλληλα τον πίνακα με το διάνυσμα για έναν συγκεκριμένο αριθμό επαναλήψεων (το
-// διάνυσμα του αποτελέσματος της κάθε επανάληψης είναι το διάνυσμα εισόδου της επόμενης επανάληψης), και θα
-// τυπώνει αντίστοιχα τον συνολικό χρόνο του πολλαπλασιασμού.
 
 /* Returns the product of multiplication between a matrix and a vector*/
 int *mat_vec(int **matrix, int *vector, int row, int col) {

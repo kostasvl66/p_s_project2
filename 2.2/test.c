@@ -9,11 +9,11 @@ enum parameter_names {
 };
 
 enum output_times {
-    serial_CSR_avg,      // Average time of serial CSR creation
     serial_mult_avg,     // Average time of serial multiplication
+    serial_CSR_avg,      // Average time of serial CSR creation
     serial_CSRmult_avg,  // Average time of serial CSR multiplication
-    parallel_CSR_avg,    // Average time of parallel CSR creation
     parallel_mult_avg,   // Average time of paralle multiplication
+    parallel_CSR_avg,    // Average time of parallel CSR creation
     parallel_CSRmult_avg // Average time of parallel CSR multiplication
 };
 
@@ -53,11 +53,11 @@ int main(int argc, char *argv[]) {
     printf("Threads: %d\n\n", parameters[threads]);
 
     printf("Average time calculations for %d sample executions are:\n", samples);
-    printf("Serial creation of CSR representation: %lf\n", averages[serial_CSR_avg]);
     printf("Serial matrix-vector multiplication: %lf\n", averages[serial_mult_avg]);
+    printf("Serial creation of CSR representation: %lf\n", averages[serial_CSR_avg]);
     printf("Serial CSR-vector multiplication: %lf\n", averages[serial_CSRmult_avg]);
-    printf("Parallel creation of CSR representation: %lf\n", averages[parallel_CSR_avg]);
     printf("Parallel matrix-vector multiplication: %lf\n", averages[parallel_mult_avg]);
+    printf("Parallel creation of CSR representation: %lf\n", averages[parallel_CSR_avg]);
     printf("Parallel CSR-vector multiplication: %lf\n", averages[parallel_CSRmult_avg]);
 
     return 0;

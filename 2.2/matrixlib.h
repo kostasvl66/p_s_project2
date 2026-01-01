@@ -3,7 +3,6 @@
 
 /* Structure used to contain a Compressed Sparse Row representation of a sparse matrix*/
 typedef struct CSR {
-    int **matrix;   // Sparse matrix to be represented using CSR
     int *val_array; // Array of non-zero values in the matrix
     int *col_array; // Array of column indexes of non-zero values in the matrix
     int *start_idx; // Array of indexes to the start of each row(first non-zero value)

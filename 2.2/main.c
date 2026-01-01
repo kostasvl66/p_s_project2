@@ -137,10 +137,24 @@ int main(int argc, char *argv[]) {
 
     timespec_get(&serial_CSRmult_finish, TIME_UTC);
 
+    /* Parallel program execution */
+
+    // Create CSR representation of sparse matrix using parallel execution
+    timespec_get(&parallel_CSRrep_start, TIME_UTC);
+    CSR_t parallel_M_rep = CSR_create_omp(mat, dimension, dimension, non_zero);
+    timespec_get(&parallel_CSRrep_finish, TIME_UTC);
+
+    // Storing elapsed time
+    double parallel_CSR_elapsed = time_elapsed(parallel_CSRrep_start, parallel_CSRrep_finish);
+
+    printf("Time of parallel CSR creation: %lf\n", parallel_CSR_elapsed);
+
+    // HACK: Printing CSR representation for debugging purposes
+    // print_CSR(M_rep, dimension);
+    // HACK:
+
     double serial_CSRmult_elapsed = time_elapsed(serial_CSRmult_start, serial_CSRmult_finish);
     printf("Time of serial CSR multiplication is: %lf\n", serial_CSRmult_elapsed);
-
-    /* Parallel program execution */
 
     timespec_get(&parallel_mult_start, TIME_UTC);
 
@@ -181,20 +195,6 @@ int main(int argc, char *argv[]) {
     // Checking if serial execution and parallel execution produce the same results
     printf("%d elements of CSR-made vectors do not match.\n", compare_array(serial_CSRres, parallel_CSRres, dimension));
 
-    // Create CSR representation of sparse matrix
-    timespec_get(&parallel_CSRrep_start, TIME_UTC);
-    CSR_t parallel_M_rep = CSR_create_omp(mat, dimension, dimension, non_zero);
-    timespec_get(&parallel_CSRrep_finish, TIME_UTC);
-
-    // Storing elapsed time
-    double parallel_CSR_elapsed = time_elapsed(parallel_CSRrep_start, parallel_CSRrep_finish);
-
-    printf("Time of parallel CSR creation: %lf\n", parallel_CSR_elapsed);
-
-    // HACK: Printing CSR representation for debugging purposes
-    // print_CSR(M_rep, dimension);
-    // HACK:
-
     // Writing data to external file
     FILE *fd;
     fd = fopen("test_data.txt", "a");
@@ -209,11 +209,11 @@ int main(int argc, char *argv[]) {
         threads,         // Number of threads used for parallel execution
     };
     double program_outputs[6] = {
-        serial_CSR_elapsed,      // Time of serial CSR creation
         serial_mult_elapsed,     // Time of serial multiplication
+        serial_CSR_elapsed,      // Time of serial CSR creation
         serial_CSRmult_elapsed,  // Time of serial CSR multiplication
-        parallel_CSR_elapsed,    // Time of parallel CSR creation
         parallel_mult_elapsed,   // Time of paralle multiplication
+        parallel_CSR_elapsed,    // Time of parallel CSR creation
         parallel_CSRmult_elapsed // Time of parallel CSR multiplication
     };
 
