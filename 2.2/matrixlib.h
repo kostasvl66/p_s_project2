@@ -1,19 +1,21 @@
+#include <stdio.h>
+#include <stdlib.h>
+
 /* Structure used to contain a Compressed Sparse Row representation of a sparse matrix*/
 typedef struct CSR {
-    int **matrix;   // Sparse matrix to be represented using CSR
     int *val_array; // Array of non-zero values in the matrix
     int *col_array; // Array of column indexes of non-zero values in the matrix
     int *start_idx; // Array of indexes to the start of each row(first non-zero value)
 } CSR_t;
 
-/* Returns the product of multiplication between a matrix and a vector*/
-int *mat_vec_product(int **matrix, int *vector, int row, int col);
-
 /*Builds the Compressed Sparse Row representation of a sparse matrix*/
-CSR_t build_CSR(int **matrix, int row, int col, int non_zero);
+CSR_t CSR_create(int **matrix, int row, int col, int non_zero);
+
+/* Returns the product of multiplication between a matrix and a vector*/
+int *mat_vec(int **matrix, int *vector, int row, int col);
 
 /* Returns the product of multiplication between a matrix and a vector, using CSR representation*/
-int *CSR_mat_vec_product(CSR_t rep, int *vec, int dimension);
+int *CSR_mat_vec(CSR_t rep, int *vec, int dimension);
 
 /* Prints a given 2D matrix in the terminal */
 void print_matrix(int **matrix, int row, int col);
@@ -27,7 +29,13 @@ void print_array(int *array, int len);
 /*Parallel implementations using OpenMP*/
 
 /*Builds the Compressed Sparse Row representation of a sparse matrix using parallel execution*/
-CSR_t omp_build_CSR(int **matrix, int row, int col, int non_zero);
+CSR_t CSR_create_omp(int **matrix, int row, int col, int non_zero);
 
 /* Returns the product of multiplication between a matrix and a vector using parallel execution*/
-int *omp_mat_vec_product(int **matrix, int *vector, int row, int col);
+int *mat_vec_omp(int **matrix, int *vector, int row, int col);
+
+/* Returns the product of multiplication between a matrix and a vector using CSR representation, and parallel execution*/
+int *CSR_mat_vec_omp(CSR_t rep, int *vec, int dimension);
+
+/* Compares two integer arrays. Returns number of non-matching elements */
+int compare_array(int *A1, int *A2, int dimension);

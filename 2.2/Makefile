@@ -1,19 +1,28 @@
-CFLAGS = -g -Wall -lpthread 
-LIBFLAGS = -lpthread -lm
+CFLAGS = -g -Wall 
+LIBFLAGS = -lm
 
-D = 10  #ARRAY_DIMENSION
+D = 1000  #ARRAY_DIMENSION
 Z = 60   #ZERO_PERCENTAGE
 R = 5    #REPETITIONS
 T = 4    #THREAD_NUM
 
+SAMPLES = 5 #Number of sample executions for test script
+
 
 .SILENT:
+test: compile-test
+	echo "Running test"
+	chmod +x ./test_script.sh
+	./test_script.sh $(SAMPLES)
+	
+compile-test: test.c
+	gcc $(CFLAGS) test.c -o test
 
 main: main.c matrixlib.c
 	echo "Compiling main"
-	gcc $(CFLAGS) -c main.c -o main.o
-	gcc $(CFLAGS) -c matrixlib.c -o matrixlib.o
-	gcc $(CFLAGS) -o main main.o matrixlib.o $(LIBFLAGS)
+	gcc $(CFLAGS) -c main.c -fopenmp -o main.o
+	gcc $(CFLAGS) -c matrixlib.c -fopenmp -o matrixlib.o
+	gcc $(CFLAGS) main.o matrixlib.o -fopenmp -o main $(LIBFLAGS)
 
 run: main
 	echo "Running main"

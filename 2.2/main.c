@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <time.h>
 
+int threads;
+
 /*Returns a random number in the range 0 - <range_max>*/
 int rand_from_range(int range_max) {
     int result = rand() / (RAND_MAX / range_max + 1);
@@ -26,25 +28,29 @@ int main(int argc, char *argv[]) {
     // Receiving program inputs
     int dimension = atoi(argv[1]);       // Matrix dimension
     int zero_percentage = atoi(argv[2]); // Percentage of matrix elements with a value of 0
-    int reps = atoi(argv[3]);            // Numbers of times multiplication is repeated
-    int threads = atoi(argv[4]);         // Number of threads used for parallel execution
+    int reps = atoi(argv[3]);            // Number of times multiplication is repeated
+    threads = atoi(argv[4]);             // Number of threads used for parallel execution
+
+    // Seeding rand for consistent results during program execution
+    srand(1);
 
     // Timespec initialization
     struct timespec serial_CSRrep_start, serial_CSRrep_finish;
     struct timespec serial_mult_start, serial_mult_finish;
     struct timespec serial_CSRmult_start, serial_CSRmult_finish;
 
-    // HACK:Printing arguments for debugging purposes
-    printf("Array dimension is: %d ", dimension);
-    printf("Zero_percentage is: %d ", zero_percentage);
-    printf("Reps is: %d ", reps);
-    printf("Threads is: %d\n", threads);
-    // HACK:
+    struct timespec parallel_CSRrep_start, parallel_CSRrep_finish;
+    struct timespec parallel_mult_start, parallel_mult_finish;
+    struct timespec parallel_CSRmult_start, parallel_CSRmult_finish;
 
     // Useful values
     int total_values = dimension * dimension;
     int zeroes = ceil(total_values * zero_percentage / 100.0);
+
     printf("There are %d zeroes out of %d values.\n", zeroes, total_values);
+
+    // Calculating number of non-zero values in the matrix
+    int non_zero = total_values - zeroes;
 
     // Generate matrix for multiplication with values from 0-100
     int **mat = (int **)malloc(dimension * sizeof(int *));
@@ -62,10 +68,6 @@ int main(int argc, char *argv[]) {
             mat[i][j] = val;
         }
     }
-    // HACK: Printing matrix for debugging purposes
-    // printf("Printing matrix before zeroing.\n");
-    // print_matrix(mat, dimension, dimension);
-    // HACK:
 
     // Setting random matrix values to 0
     for (int l = 0; l < zeroes; l++) {
@@ -85,30 +87,15 @@ int main(int argc, char *argv[]) {
 
     // Create vector with random int values
     int *vec = (int *)malloc(dimension * sizeof(int));
-    // HACK: Printing vector for debugging purposes
 
     for (int k = 0; k < dimension; k++) {
         int val = rand_from_range(100);
         vec[k] = val;
     }
 
-    // HACK: Printing vector for debugging purposes
-    printf("Vector is:\t");
-    print_array(vec, dimension);
-    printf("\n");
-    // HACK:
-
-    // HACK: Printing matrix for debugging purposes
-    printf("Printing matrix after zeroing.\n");
-    print_matrix(mat, dimension, dimension);
-    // HACK:
-
-    // Calculating number of non-zero values in the matrix
-    int non_zero = total_values - zeroes;
-
     // Create CSR representation of sparse matrix
     timespec_get(&serial_CSRrep_start, TIME_UTC);
-    CSR_t M_rep = build_CSR(mat, dimension, dimension, non_zero);
+    CSR_t M_rep = CSR_create(mat, dimension, dimension, non_zero);
     timespec_get(&serial_CSRrep_finish, TIME_UTC);
 
     // Storing elapsed time
@@ -117,41 +104,131 @@ int main(int argc, char *argv[]) {
     printf("Time of serial CSR creation: %lf\n", serial_CSR_elapsed);
 
     // HACK: Printing CSR representation for debugging purposes
-    print_CSR(M_rep, dimension);
+    // print_CSR(M_rep, dimension);
     // HACK:
 
     timespec_get(&serial_mult_start, TIME_UTC);
 
-    // Receiving product of matrix and vector using serual execution
-    int *res = (int *)malloc(dimension * sizeof(int));
+    // Receiving product of matrix and vector using serial execution
+    // The product of each repetition is set as the multiplication vector of the next one
+    int *serial_res = (int *)malloc(dimension * sizeof(int));
+    int *x = vec;
     for (int repetition = 0; repetition < reps; repetition++) {
-        res = mat_vec_product(mat, vec, dimension, dimension);
+        serial_res = mat_vec(mat, x, dimension, dimension);
+        x = serial_res;
     }
 
     timespec_get(&serial_mult_finish, TIME_UTC);
 
     // Storing elapsed time
     double serial_mult_elapsed = time_elapsed(serial_mult_start, serial_mult_finish);
-
     printf("Time of serial multiplication: %lf\n", serial_mult_elapsed);
-
-    // HACK: Printing matrix-vector product for debugging purposes
-    printf("Product is:\t");
-    print_array(res, dimension);
-    printf("\n");
-    // HACK:
 
     timespec_get(&serial_CSRmult_start, TIME_UTC);
 
-    int *CSRres = CSR_mat_vec_product(M_rep, vec, dimension);
+    // Receiving product of matrix and vector using serial execution
+    // The product of each repetition is set as the multiplication vector of the next one
+    int *serial_CSRres = (int *)malloc(dimension * sizeof(int));
+    x = vec;
+    for (int repetition = 0; repetition < reps; repetition++) {
+        serial_CSRres = CSR_mat_vec(M_rep, vec, dimension);
+        x = serial_CSRres;
+    }
 
     timespec_get(&serial_CSRmult_finish, TIME_UTC);
 
-    printf("CSR product is:\t");
-    print_array(CSRres, dimension);
-    printf("\n");
+    /* Parallel program execution */
+
+    // Create CSR representation of sparse matrix using parallel execution
+    timespec_get(&parallel_CSRrep_start, TIME_UTC);
+    CSR_t parallel_M_rep = CSR_create_omp(mat, dimension, dimension, non_zero);
+    timespec_get(&parallel_CSRrep_finish, TIME_UTC);
+
+    // Storing elapsed time
+    double parallel_CSR_elapsed = time_elapsed(parallel_CSRrep_start, parallel_CSRrep_finish);
+
+    printf("Time of parallel CSR creation: %lf\n", parallel_CSR_elapsed);
+
+    // HACK: Printing CSR representation for debugging purposes
+    // print_CSR(M_rep, dimension);
+    // HACK:
+
+    double serial_CSRmult_elapsed = time_elapsed(serial_CSRmult_start, serial_CSRmult_finish);
+    printf("Time of serial CSR multiplication is: %lf\n", serial_CSRmult_elapsed);
+
+    timespec_get(&parallel_mult_start, TIME_UTC);
+
+    // Receiving product of matrix and vector using parallel execution
+    // The product of each repetition is set as the multiplication vector of the next one
+    int *parallel_res = (int *)malloc(dimension * sizeof(int));
+    x = vec;
+    for (int repetition = 0; repetition < reps; repetition++) {
+        parallel_res = mat_vec_omp(mat, x, dimension, dimension);
+        x = parallel_res;
+    }
+
+    timespec_get(&parallel_mult_finish, TIME_UTC);
+
+    // Checking if serial execution and parallel execution produce the same results
+    printf("%d elements of vectors do not match.\n", compare_array(serial_res, parallel_res, dimension));
+
+    // Storing elapsed time
+    double parallel_mult_elapsed = time_elapsed(parallel_mult_start, parallel_mult_finish);
+    printf("Time of parallel multiplication: %lf\n", parallel_mult_elapsed);
+
+    timespec_get(&parallel_CSRmult_start, TIME_UTC);
+
+    // Receiving product of matrix and vector using serial execution
+    // The product of each repetition is set as the multiplication vector of the next one
+    int *parallel_CSRres = (int *)malloc(dimension * sizeof(int));
+    x = vec;
+    for (int repetition = 0; repetition < reps; repetition++) {
+        parallel_CSRres = CSR_mat_vec_omp(M_rep, vec, dimension);
+        x = parallel_CSRres;
+    }
+
+    timespec_get(&parallel_CSRmult_finish, TIME_UTC);
+
+    double parallel_CSRmult_elapsed = time_elapsed(parallel_CSRmult_start, parallel_CSRmult_finish);
+    printf("Time of parallel CSR multiplication is: %lf\n", parallel_CSRmult_elapsed);
+
+    // Checking if serial execution and parallel execution produce the same results
+    printf("%d elements of CSR-made vectors do not match.\n", compare_array(serial_CSRres, parallel_CSRres, dimension));
+
+    // Writing data to external file
+    FILE *fd;
+    fd = fopen("test_data.txt", "a");
+    if (fd == NULL) {
+        perror("Error opening file");
+    }
+
+    int program_parameters[4] = {
+        dimension,       // Matrix dimension
+        zero_percentage, // Percentage of matrix elements with a value of 0
+        reps,            // Number of times multiplication is repeated
+        threads,         // Number of threads used for parallel execution
+    };
+    double program_outputs[6] = {
+        serial_mult_elapsed,     // Time of serial multiplication
+        serial_CSR_elapsed,      // Time of serial CSR creation
+        serial_CSRmult_elapsed,  // Time of serial CSR multiplication
+        parallel_mult_elapsed,   // Time of paralle multiplication
+        parallel_CSR_elapsed,    // Time of parallel CSR creation
+        parallel_CSRmult_elapsed // Time of parallel CSR multiplication
+    };
+
+    // Writing program parameters to external file for testing purposes
+    for (int parameter = 0; parameter < 4; parameter++) {
+        fprintf(fd, "%d\n", program_parameters[parameter]);
+    }
+
+    // Writing program outputs to external file for testing purposes
+    for (int output = 0; output < 6; output++) {
+        fprintf(fd, "%lf\n", program_outputs[output]);
+    }
 
     // Clearing memory
+    fclose(fd);
     for (int row = 0; row < dimension; row++) {
         free(mat[row]);
     }
@@ -159,10 +236,12 @@ int main(int argc, char *argv[]) {
     mat = NULL;
     free(vec);
     vec = NULL;
-    free(res);
-    res = NULL;
-    free(CSRres);
-    CSRres = NULL;
+    free(serial_res);
+    serial_res = NULL;
+    free(parallel_res);
+    parallel_res = NULL;
+    free(serial_CSRres);
+    serial_CSRres = NULL;
 
     return 0;
 }
