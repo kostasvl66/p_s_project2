@@ -39,3 +39,6 @@ int *CSR_mat_vec_omp(CSR_t rep, int *vec, int dimension);
 
 /* Compares two integer arrays. Returns number of non-matching elements */
 int compare_array(int *A1, int *A2, int dimension);
+
+/* Compares two CSR representations, prints counts of non-matching elements */
+void compare_CSR(CSR_t CSR1, CSR_t CSR2, int non_zero, int rows);

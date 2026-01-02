@@ -1,3 +1,4 @@
+MAKEFLAGS += --no-print-directory
 CFLAGS = -g -Wall 
 LIBFLAGS = -lm
 
@@ -11,7 +12,6 @@ SAMPLES = 5 #Number of sample executions for test script
 
 .SILENT:
 test: compile-test
-	echo "Running test"
 	chmod +x ./test_script.sh
 	./test_script.sh $(SAMPLES)
 	
@@ -19,13 +19,11 @@ compile-test: test.c
 	gcc $(CFLAGS) test.c -o test
 
 main: main.c matrixlib.c
-	echo "Compiling main"
 	gcc $(CFLAGS) -c main.c -fopenmp -o main.o
 	gcc $(CFLAGS) -c matrixlib.c -fopenmp -o matrixlib.o
 	gcc $(CFLAGS) main.o matrixlib.o -fopenmp -o main $(LIBFLAGS)
 
 run: main
-	echo "Running main"
 	./main $(D) $(Z) $(R) $ $(T)
 
 clean: main
