@@ -47,8 +47,6 @@ int main(int argc, char *argv[]) {
     int total_values = dimension * dimension;
     int zeroes = ceil(total_values * zero_percentage / 100.0);
 
-    printf("There are %d zeroes out of %d values.\n", zeroes, total_values);
-
     // Calculating number of non-zero values in the matrix
     int non_zero = total_values - zeroes;
 
@@ -101,16 +99,10 @@ int main(int argc, char *argv[]) {
     // Storing elapsed time
     double serial_CSR_elapsed = time_elapsed(serial_CSRrep_start, serial_CSRrep_finish);
 
-    printf("Time of serial CSR creation: %lf\n", serial_CSR_elapsed);
-
-    // HACK: Printing CSR representation for debugging purposes
-    // print_CSR(M_rep, dimension);
-    // HACK:
-
-    timespec_get(&serial_mult_start, TIME_UTC);
-
     // Receiving product of matrix and vector using serial execution
     // The product of each repetition is set as the multiplication vector of the next one
+
+    timespec_get(&serial_mult_start, TIME_UTC);
     int *serial_res = (int *)malloc(dimension * sizeof(int));
     int *x = vec;
     for (int repetition = 0; repetition < reps; repetition++) {
@@ -122,12 +114,11 @@ int main(int argc, char *argv[]) {
 
     // Storing elapsed time
     double serial_mult_elapsed = time_elapsed(serial_mult_start, serial_mult_finish);
-    printf("Time of serial multiplication: %lf\n", serial_mult_elapsed);
-
-    timespec_get(&serial_CSRmult_start, TIME_UTC);
 
     // Receiving product of matrix and vector using serial execution
     // The product of each repetition is set as the multiplication vector of the next one
+
+    timespec_get(&serial_CSRmult_start, TIME_UTC);
     int *serial_CSRres = (int *)malloc(dimension * sizeof(int));
     x = vec;
     for (int repetition = 0; repetition < reps; repetition++) {
@@ -136,6 +127,8 @@ int main(int argc, char *argv[]) {
     }
 
     timespec_get(&serial_CSRmult_finish, TIME_UTC);
+
+    double serial_CSRmult_elapsed = time_elapsed(serial_CSRmult_start, serial_CSRmult_finish);
 
     /* Parallel program execution */
 
@@ -147,19 +140,9 @@ int main(int argc, char *argv[]) {
     // Storing elapsed time
     double parallel_CSR_elapsed = time_elapsed(parallel_CSRrep_start, parallel_CSRrep_finish);
 
-    printf("Time of parallel CSR creation: %lf\n", parallel_CSR_elapsed);
-
-    // HACK: Printing CSR representation for debugging purposes
-    // print_CSR(M_rep, dimension);
-    // HACK:
-
-    double serial_CSRmult_elapsed = time_elapsed(serial_CSRmult_start, serial_CSRmult_finish);
-    printf("Time of serial CSR multiplication is: %lf\n", serial_CSRmult_elapsed);
-
-    timespec_get(&parallel_mult_start, TIME_UTC);
-
     // Receiving product of matrix and vector using parallel execution
     // The product of each repetition is set as the multiplication vector of the next one
+    timespec_get(&parallel_mult_start, TIME_UTC);
     int *parallel_res = (int *)malloc(dimension * sizeof(int));
     x = vec;
     for (int repetition = 0; repetition < reps; repetition++) {
@@ -169,31 +152,23 @@ int main(int argc, char *argv[]) {
 
     timespec_get(&parallel_mult_finish, TIME_UTC);
 
-    // Checking if serial execution and parallel execution produce the same results
-    printf("%d elements of vectors do not match.\n", compare_array(serial_res, parallel_res, dimension));
-
     // Storing elapsed time
     double parallel_mult_elapsed = time_elapsed(parallel_mult_start, parallel_mult_finish);
-    printf("Time of parallel multiplication: %lf\n", parallel_mult_elapsed);
-
-    timespec_get(&parallel_CSRmult_start, TIME_UTC);
 
     // Receiving product of matrix and vector using serial execution
     // The product of each repetition is set as the multiplication vector of the next one
+
+    timespec_get(&parallel_CSRmult_start, TIME_UTC);
     int *parallel_CSRres = (int *)malloc(dimension * sizeof(int));
     x = vec;
     for (int repetition = 0; repetition < reps; repetition++) {
-        parallel_CSRres = CSR_mat_vec_omp(M_rep, vec, dimension);
+        parallel_CSRres = CSR_mat_vec_omp(parallel_M_rep, vec, dimension);
         x = parallel_CSRres;
     }
 
     timespec_get(&parallel_CSRmult_finish, TIME_UTC);
 
     double parallel_CSRmult_elapsed = time_elapsed(parallel_CSRmult_start, parallel_CSRmult_finish);
-    printf("Time of parallel CSR multiplication is: %lf\n", parallel_CSRmult_elapsed);
-
-    // Checking if serial execution and parallel execution produce the same results
-    printf("%d elements of CSR-made vectors do not match.\n", compare_array(serial_CSRres, parallel_CSRres, dimension));
 
     // Writing data to external file
     FILE *fd;
@@ -242,6 +217,8 @@ int main(int argc, char *argv[]) {
     parallel_res = NULL;
     free(serial_CSRres);
     serial_CSRres = NULL;
+    free(parallel_CSRres);
+    parallel_CSRres = NULL;
 
     return 0;
 }
