@@ -6,7 +6,7 @@ import sys
 # CONFIGURATION
 # -----------------------------
 Ns = [1000, 10000, 100000]
-Ms = [1, 2, 4, 8, 16]
+Ms = [1, 2, 4, 8, 15]
 J = 4
 
 EXECUTABLE = "./polynomials"
