@@ -163,8 +163,6 @@ int main(int argc, char *argv[]) {
         x = parallel_CSRres;
     }
 
-    printf("Result of serial and parallel CSR multiplication: %d\n", compare_array(serial_CSRres, parallel_CSRres, dimension));
-
     timespec_get(&parallel_CSRmult_finish, TIME_UTC);
 
     double parallel_CSRmult_elapsed = time_elapsed(parallel_CSRmult_start, parallel_CSRmult_finish);
