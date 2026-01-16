@@ -101,7 +101,6 @@ int main(int argc, char *argv[]) {
 
     // Receiving product of matrix and vector using serial execution
     // The product of each repetition is set as the multiplication vector of the next one
-
     timespec_get(&serial_mult_start, TIME_UTC);
     int *serial_res = (int *)malloc(dimension * sizeof(int));
     int *x = vec;
@@ -117,12 +116,11 @@ int main(int argc, char *argv[]) {
 
     // Receiving product of matrix and vector using serial execution
     // The product of each repetition is set as the multiplication vector of the next one
-
     timespec_get(&serial_CSRmult_start, TIME_UTC);
     int *serial_CSRres = (int *)malloc(dimension * sizeof(int));
     x = vec;
     for (int repetition = 0; repetition < reps; repetition++) {
-        serial_CSRres = CSR_mat_vec(M_rep, vec, dimension);
+        serial_CSRres = CSR_mat_vec(M_rep, x, dimension);
         x = serial_CSRres;
     }
 
@@ -157,14 +155,15 @@ int main(int argc, char *argv[]) {
 
     // Receiving product of matrix and vector using serial execution
     // The product of each repetition is set as the multiplication vector of the next one
-
     timespec_get(&parallel_CSRmult_start, TIME_UTC);
     int *parallel_CSRres = (int *)malloc(dimension * sizeof(int));
     x = vec;
     for (int repetition = 0; repetition < reps; repetition++) {
-        parallel_CSRres = CSR_mat_vec_omp(parallel_M_rep, vec, dimension);
+        parallel_CSRres = CSR_mat_vec_omp(parallel_M_rep, x, dimension);
         x = parallel_CSRres;
     }
+
+    printf("Result of serial and parallel CSR multiplication: %d\n", compare_array(serial_CSRres, parallel_CSRres, dimension));
 
     timespec_get(&parallel_CSRmult_finish, TIME_UTC);
 
